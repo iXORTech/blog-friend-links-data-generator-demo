@@ -10,10 +10,11 @@ description = "A Rust Script used to generate blog friend links data (in JSON fo
 readme = "README.md"
 repository = "https://github.com/iXORTech/blog-friend-links-data-generator"
 license = "MIT"
-license-file = "LICENSE"
 
 [[bin]]
 name = "blog-friend-links-data-generator"
 path = "src/script.rs"
 
 [dependencies]
+serde = { version = "1.0.219", features = ["derive"] }  # Serialization/Deserialization
+toml = "0.8.22" # TOML Parsing
