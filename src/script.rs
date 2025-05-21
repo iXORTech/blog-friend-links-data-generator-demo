@@ -1,6 +1,7 @@
 #!/usr/bin/env rust-script
 //! ```cargo
 //! [dependencies]
+//! chrono = "0.4.41"   # Date and Time Library
 //! reqwest = "0.12.15" # HTTP Client
 //! serde = { version = "1.0.219", features = ["derive"] }  # Serialization/Deserialization
 //! serde_json = "1.0.140"  # JSON Serialization/Deserialization
@@ -82,14 +83,15 @@ async fn main() {
     let issues = get_all_issues(&config).await;
 
     // Print the issues to the console.
+    println!();
     for issue in issues {
         println!("Issue ID: {}", issue.id);
         println!("Issue Title: {}", issue.title);
         println!("Issue State: {}", issue.state);
         println!("Issue URL: {}", issue.url);
-        println!("Issue Created At: {}", issue.created_at);
-        println!("Issue Updated At: {}", issue.updated_at);
-        println!("Issue Closed At: {:?}", issue.closed_at);
+        println!("Issue Created At: {}", issue.created_at());
+        println!("Issue Updated At: {}", issue.updated_at());
+        println!("Issue Closed At: {:?}", issue.closed_at());
         println!("Labels: {:?}", issue.labels);
         println!();
     }

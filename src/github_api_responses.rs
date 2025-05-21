@@ -22,6 +22,31 @@ pub(crate) struct Issue {
     pub(crate) updated_at: String,
 }
 
+impl Issue {
+    /// Returns the closed_at date of the issue as a DateTime object.
+    /// If the issue is not closed, it returns None.
+    pub(crate) fn closed_at(&self) -> Option<chrono::DateTime<chrono::Utc>> {
+        self.closed_at
+            .as_ref()
+            .and_then(|date_str| chrono::DateTime::parse_from_rfc3339(date_str).ok())
+            .map(|dt| dt.with_timezone(&chrono::Utc))
+    }
+
+    /// Returns the created_at date of the issue as a DateTime object.
+    pub(crate) fn created_at(&self) -> chrono::DateTime<chrono::Utc> {
+        chrono::DateTime::parse_from_rfc3339(&self.created_at)
+            .expect("Failed to Parse created_at Date")
+            .with_timezone(&chrono::Utc)
+    }
+
+    /// Returns the updated_at date of the issue as a DateTime object.
+    pub(crate) fn updated_at(&self) -> chrono::DateTime<chrono::Utc> {
+        chrono::DateTime::parse_from_rfc3339(&self.updated_at)
+            .expect("Failed to Parse updated_at Date")
+            .with_timezone(&chrono::Utc)
+    }
+}
+
 /// The structure of a label in the issue.
 ///
 /// Note that this struct only contains the fields needed for the script to work,

@@ -16,6 +16,7 @@ name = "blog-friend-links-data-generator"
 path = "src/script.rs"
 
 [dependencies]
+chrono = "0.4.41"   # Date and Time Library
 reqwest = "0.12.15" # HTTP Client
 serde = { version = "1.0.219", features = ["derive"] }  # Serialization/Deserialization
 serde_json = "1.0.140"  # JSON Serialization/Deserialization
