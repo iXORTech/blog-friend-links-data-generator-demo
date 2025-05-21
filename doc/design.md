@@ -29,6 +29,17 @@ structure for this project is as follows:
 4. The `generation.label` configuration defines the label that is used to identify the issues that contains data to be included in the generated data.
 5. The `generation.groups` configurations defines a list of groups that categorizes the data. Each entry of the list, a string, is also used as the label to identify the issues that contains data to be included in that group.
 
+As sample of the JSON data code block would be:
+
+```json
+{
+    "name": "My Blog",
+    "url": "https://myblog.com",
+    "description": "A blog about my life and stuff.",
+    "avatar": "https://myblog.com/avatar.png",
+}
+```
+
 ## Script
 
 This script is written in Rust and uses [rust-script](https://rust-script.org/) to run it as a script without the need
