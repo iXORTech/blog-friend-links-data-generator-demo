@@ -9,6 +9,7 @@
 //! ```
 
 mod config;
+mod github_api_responses;
 
 use std::fs;
 use reqwest::header::{ACCEPT, AUTHORIZATION, USER_AGENT};
@@ -21,7 +22,7 @@ use config::Config;
 /// - `config`: A reference to a `Config` struct that contains the GitHub API token, owner, and repository name.
 ///
 /// See: https://docs.github.com/en/rest/issues/issues?apiVersion=2022-11-28#list-repository-issues
-async fn get_all_issues(config: &Config) -> String {
+async fn get_all_issues(config: &Config) -> Vec<github_api_responses::Issue> {
     // Setup the Reqwest client.
     let client = reqwest::Client::new();
     // Construct the URL for the GitHub API request.
@@ -31,7 +32,7 @@ async fn get_all_issues(config: &Config) -> String {
     );
 
     // Send the GET request to the GitHub API.
-    let response = client.get(url)
+    let res = client.get(url)
         .header(USER_AGENT, "blog-friend-links-data-generator by iXOR Technology")
         .header(ACCEPT, "application/vnd.github+json")
         .header(AUTHORIZATION, format!("Bearer {}", config.github.token))
@@ -39,7 +40,28 @@ async fn get_all_issues(config: &Config) -> String {
         .send()
         .await;
 
-    response.unwrap().text().await.unwrap()
+    // Check if the request was successful.
+    match res {
+        Ok(res) => {
+            if res.status().is_success() {
+                let res_body = res.text().await;
+                match res_body {
+                    Ok(body) => {
+                        // Deserialize the response body into the IssueListResponse struct and return it.
+                        serde_json::from_str(&body).expect("Failed to Parse Response")
+                    }
+                    Err(e) => {
+                        panic!("Failed to Read Response: {}", e);
+                    }
+                }
+            } else {
+                panic!("Failed to Fetch Issues: {}", res.status());
+            }
+        }
+        Err(e) => {
+            panic!("Error Sending Request: {}", e);
+        }
+    }
 }
 
 #[tokio::main]
@@ -58,4 +80,17 @@ async fn main() {
 
     // Call the function to get all issues from the GitHub repository.
     let issues = get_all_issues(&config).await;
+
+    // Print the issues to the console.
+    for issue in issues {
+        println!("Issue ID: {}", issue.id);
+        println!("Issue Title: {}", issue.title);
+        println!("Issue State: {}", issue.state);
+        println!("Issue URL: {}", issue.url);
+        println!("Issue Created At: {}", issue.created_at);
+        println!("Issue Updated At: {}", issue.updated_at);
+        println!("Issue Closed At: {:?}", issue.closed_at);
+        println!("Labels: {:?}", issue.labels);
+        println!();
+    }
 }

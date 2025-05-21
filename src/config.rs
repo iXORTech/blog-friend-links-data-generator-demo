@@ -7,8 +7,8 @@ use serde::Deserialize;
 /// - `generation`: Configuration for the data generation process.
 #[derive(Deserialize)]
 pub(crate) struct Config {
-    pub github: GithubConfig,
-    pub generation: GenerationConfig
+    pub(crate) github: GithubConfig,
+    pub(crate) generation: GenerationConfig
 }
 
 /// The structure of the GitHub configuration.
@@ -19,9 +19,9 @@ pub(crate) struct Config {
 /// - `repository`: The name of the GitHub repository where issues to be processed are located.
 #[derive(Deserialize)]
 pub(crate) struct GithubConfig {
-    pub token: String,
-    pub owner: String,
-    pub repository: String,
+    pub(crate) token: String,
+    pub(crate) owner: String,
+    pub(crate) repository: String,
 }
 
 /// The structure of the data generation configuration.
@@ -32,7 +32,7 @@ pub(crate) struct GithubConfig {
 /// - `sort_by_updated_time`: Whether to sort the issues by their updated time or creation time.
 #[derive(Deserialize)]
 pub(crate) struct GenerationConfig {
-    pub label: String,
-    pub groups: Vec<String>,
-    pub sort_by_updated_time: bool,
+    pub(crate) label: String,
+    pub(crate) groups: Vec<String>,
+    pub(crate) sort_by_updated_time: bool,
 }
