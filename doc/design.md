@@ -48,6 +48,7 @@ to compile it ahead of time. Other libraries used are:
 - [reqwest](https://crates.io/crates/reqwest): for making HTTP requests (e.g. to the GitHub API).
 - [serde](https://crates.io/crates/serde): for serializing and deserializing TOML and JSON data.
 - [serde_json](https://crates.io/crates/serde_json): for handling JSON serialization and deserialization with Serde.
+- [tokio](https://crates.io/crates/tokio): for async runtime.
 - [toml](https://crates.io/crates/toml): for configuration parsing.
 - *list to be completed*.
 
