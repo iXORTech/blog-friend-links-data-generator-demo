@@ -47,7 +47,7 @@ async fn get_all_issues(config: &Config) -> Vec<github_api_responses::Issue> {
                 let res_body = res.text().await;
                 match res_body {
                     Ok(body) => {
-                        // Deserialize the response body into the IssueListResponse struct and return it.
+                        // Deserialize the response body into a vector of `Issue` structs and return it.
                         serde_json::from_str(&body).expect("Failed to Parse Response")
                     }
                     Err(e) => {
