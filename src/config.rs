@@ -1,14 +1,17 @@
 use serde::Deserialize;
+use crate::github_api_responses::Label;
 
 /// The structure of the script configuration.
 ///
 /// It contains two parts:
 /// - `github`: Configuration for GitHub API access.
 /// - `generation`: Configuration for the data generation process.
+/// - `groups`: Configuration for the groups that separate issues and generated data into different categories.
 #[derive(Deserialize)]
 pub(crate) struct Config {
     pub(crate) github: GithubConfig,
-    pub(crate) generation: GenerationConfig
+    pub(crate) generation: GenerationConfig,
+    pub(crate) groups: Vec<GroupConfig>,
 }
 
 /// The structure of the GitHub configuration.
@@ -28,11 +31,22 @@ pub(crate) struct GithubConfig {
 ///
 /// It contains:
 /// - `label`: The label added to the issues to be included in the generated data.
-/// - `groups`: The groups that separate issues and generated data into different categories.
 /// - `sort_by_updated_time`: Whether to sort the issues by their updated time or creation time.
 #[derive(Deserialize)]
 pub(crate) struct GenerationConfig {
     pub(crate) label: String,
-    pub(crate) groups: Vec<String>,
     pub(crate) sort_by_updated_time: bool,
+}
+
+/// The structure of a group configuration.
+///
+/// It contains:
+/// - `name`: The name of the group.
+/// - `description`: The description of the group.
+/// - `label`: The label added to the issues to be included in this group.
+#[derive(Deserialize)]
+pub(crate) struct GroupConfig {
+    pub(crate) name: String,
+    pub(crate) description: String,
+    pub(crate) label: String,
 }

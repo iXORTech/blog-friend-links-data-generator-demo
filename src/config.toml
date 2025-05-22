@@ -5,5 +5,13 @@ repository="THE_REPO_NAME"
 
 [generation]
 label="LABEL_FOR_ACTIVE_LINKS"
-groups=[]
 sort_by_updated_time=true
+
+[[groups]]
+name="Group 1"
+description="Description for Group 1"
+label="LABEL_FOR_GROUP_1"
+[[groups]]
+name="Group 2"
+description="Description for Group 2"
+label="LABEL_FOR_GROUP_2"

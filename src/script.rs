@@ -76,8 +76,14 @@ async fn main() {
     println!("Github Repository: {}", config.github.repository);
 
     println!("Generation Label: {}", config.generation.label);
-    println!("Generation Groups: {:?}", config.generation.groups);
     println!("Sort by Updated Time: {}", config.generation.sort_by_updated_time);
+
+    println!("Groups:");
+    for group in &config.groups {
+        println!("  - Name: {}", group.name);
+        println!("    Description: {}", group.description);
+        println!("    Label: {}", group.label);
+    }
 
     // Call the function to get all issues from the GitHub repository.
     let issues = get_all_issues(&config).await;
