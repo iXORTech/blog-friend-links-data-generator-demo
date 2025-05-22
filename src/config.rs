@@ -1,5 +1,4 @@
 use serde::Deserialize;
-use crate::github_api_responses::Label;
 
 /// The structure of the script configuration.
 ///

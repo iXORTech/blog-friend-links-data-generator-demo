@@ -12,9 +12,9 @@
 mod config;
 mod github_api_responses;
 
-use std::fs;
-use reqwest::header::{ACCEPT, AUTHORIZATION, USER_AGENT};
 use config::Config;
+use reqwest::header::{ACCEPT, AUTHORIZATION, USER_AGENT};
+use std::fs;
 
 /// This function retrieves all issues from a specified GitHub repository.
 /// It uses the GitHub API to fetch issues and returns the response as a string (for now).
@@ -65,6 +65,104 @@ async fn get_all_issues(config: &Config) -> Vec<github_api_responses::Issue> {
     }
 }
 
+/// This function filters the issues, based on the content of the issue body
+/// and criteria described in the design documentation, and returns a vector
+/// that only contains issues with valid data to be processed.
+///
+/// ## Criteria
+/// Based on the design documentation, the following standard must be met for an issue to be valid:
+///
+/// 2. The issue body *can* be written in Markdown and *can* contain anything that can be written in Markdown.
+/// 3. The issue body *must* contain a **fenced code block**, for which:
+///     1. *contains* the data for the corresponding friend link entry.
+///     2. *must* be set to `json` language.
+///     3. *must* contain a valid JSON object containing data for the friend link entry.
+///     4. *should* be the **only** code block in the issue body.
+///     5. *must* be preceded by a `<!-- DATA_START -->` comment.
+///     6. *must* be followed by a `<!-- DATA_END -->` comment.
+///     7. *must* be the only Markdown content between the `<!-- DATA_START -->` and `<!-- DATA_END -->` comments.
+///     8. No other `<!-- DATA_START -->` or `<!-- DATA_END -->` comments can exist in the issue body.
+///
+/// *(some other parts are not included since they are not relevant to this function)*
+///
+/// ## Arguments
+/// - `issues`: A vector of `Issue` structs representing the issues to be filtered.
+///
+/// ## Returns
+/// A vector of `Issue` structs that contains all valid issues based on the criteria.
+fn get_all_valid_issues(issues: Vec<github_api_responses::Issue>) -> Vec<github_api_responses::Issue> {
+    issues.into_iter()
+        .filter(|issue| {
+            println!("Checking issue, ID: {}", issue.id);
+
+            let body = issue.body.clone();
+            let data_start = "<!-- DATA_START -->";
+            let data_end = "<!-- DATA_END -->";
+            let code_block_start = "```json";
+            let code_block_end = "```";
+
+            // Find the index of data start and end comments.
+            let data_start_index = body.find(data_start);
+            let data_end_index = body.find(data_end);
+
+            // Check if the comments exist.
+            if data_start_index.is_none() || data_end_index.is_none() {
+                println!("Missing DATA_START or DATA_END comment.");
+                return false;
+            }
+            let data_start_index = data_start_index.unwrap();
+            let data_end_index = data_end_index.unwrap();
+
+            // Check if the comments are in the correct order.
+            if data_start_index > data_end_index {
+                println!("DATA_START comment is after DATA_END comment.");
+                return false;
+            }
+            // Check if the comments are the only pair in the body.
+            if body.matches(data_start).count() != 1 || body.matches(data_end).count() != 1 {
+                println!("Multiple DATA_START or DATA_END comments found.");
+                return false;
+            }
+
+            // Extract the data section between the comments.
+            let data_section = &body[data_start_index + data_start.len()..data_end_index].trim();
+
+            // Check if only a code block exists in the data section.
+            if !(data_section.starts_with(code_block_start) && data_section.ends_with(code_block_end)) {
+                println!("Other Markdown content found in the data section.");
+                return false;
+            }
+            // Check if the code block is the only one in the data section.
+            // The check is `data_section.matches(code_block_end).count() != 2` is done as the bit "```" is also included in the start of the code block.
+            if data_section.matches(code_block_start).count() != 1 || data_section.matches(code_block_end).count() != 2 {
+                println!("Multiple code blocks (or other Markdown content) found in the data section.");
+                return false;
+            }
+
+            // Extract the code block content.
+            let code_block = &data_section[code_block_start.len()..data_section.len() - code_block_end.len()];
+
+            // Check if the code block content is valid JSON.
+            serde_json::from_str::<serde_json::Value>(code_block).is_ok()
+        })
+        .collect()
+}
+
+/// This function returns the list of issue that is active
+/// depending on the provided label that identifies the active issues.
+///
+/// ## Arguments
+/// - `label`: The name of the label that identifies the active issues.
+/// - `issues`: A vector of `Issue` structs representing the issues to be filtered.
+///
+/// ## Returns
+/// A vector of `Issue` structs that contains all active issues (i.e. with the specified label).
+fn get_all_active_entries(label: String, issues: Vec<github_api_responses::Issue>) -> Vec<github_api_responses::Issue> {
+    issues.into_iter()
+        .filter(|issue| issue.labels.iter().any(|l| l.name == label))
+        .collect()
+}
+
 #[tokio::main]
 async fn main() {
     // Read the config.toml file and parse it.
@@ -88,17 +186,25 @@ async fn main() {
     // Call the function to get all issues from the GitHub repository.
     let issues = get_all_issues(&config).await;
 
+    // Filter the issues to only get valid ones based on the specified criteria.
+    let issues = get_all_valid_issues(issues);
+
+    // Filter the issues to get only the active ones based on the specified label.
+    // let issues = get_all_active_entries(config.generation.label, issues);
+
     // Print the issues to the console.
     println!();
     for issue in issues {
         println!("Issue ID: {}", issue.id);
-        println!("Issue Title: {}", issue.title);
-        println!("Issue State: {}", issue.state);
         println!("Issue URL: {}", issue.url);
+        println!("Issue Number: {}", issue.number);
+        println!("Issue State: {}", issue.state);
+        println!("Issue Title: {}", issue.title);
+        println!("Issue Body: {}", issue.body);
+        println!("Issue Labels: {:?}", issue.labels);
+        println!("Issue Closed At: {:?}", issue.closed_at);
         println!("Issue Created At: {}", issue.created_at());
         println!("Issue Updated At: {}", issue.updated_at());
-        println!("Issue Closed At: {:?}", issue.closed_at());
-        println!("Labels: {:?}", issue.labels);
         println!();
     }
 }
