@@ -36,7 +36,7 @@ As sample of the JSON data code block would be:
     "name": "My Blog",
     "url": "https://myblog.com",
     "description": "A blog about my life and stuff.",
-    "avatar": "https://myblog.com/avatar.png",
+    "avatar": "https://myblog.com/avatar.png"
 }
 ```
 
@@ -63,3 +63,82 @@ And the processing logic is as follows:
             - If it does not: no further action is taken for this issue.
         - If it does not: no further action is taken for this issue.
     - If it is not: no further action is taken for this issue.
+
+## Output
+
+The script will take the list of entries from the GitHub issues and generate a JSON with the following structure:
+
+```json
+[
+  {
+    "group": "LABEL_FOR_GROUP_1",
+    "groupName": "Group 1",
+    "groupDesc": "Description for Group 1",
+    "entries": [
+      {
+        "name": "My Blog",
+        "url": "https://myblog.com",
+        "description": "A blog about my life and stuff.",
+        "avatar": "https://myblog.com/avatar.png"
+      },
+      {
+        "name": "My Other Blog",
+        "url": "https://myotherblog.com",
+        "description": "A blog about my other life and stuff.",
+        "avatar": "https://myotherblog.com/avatar.png"
+      },
+      // ... other entries
+    ]
+  },
+  {
+    "group": "LABEL_FOR_GROUP_2",
+    "groupName": "Group 2",
+    "groupDesc": "Description for Group 2",
+    "entries": [
+      // ... entries for group 2
+    ]
+  },
+  // ... other groups
+]
+```
+
+With this generated structure, two files will be generated:
+
+1. `linksData.json`: the JSON file containing the above structure in its exact form.
+2. `linksData.mjs`: a JavaScript module that exports the JSON data as a JavaScript object, which can be imported and used in JavaScript projects and has the following structure:
+
+    ```javascript
+    const linksData = [
+      {
+        group: "LABEL_FOR_GROUP_1",
+        groupName: "Group 1",
+        groupDesc: "Description for Group 1",
+        entries: [
+          {
+            name: "My Blog",
+            url: "https://myblog.com",
+            description: "A blog about my life and stuff.",
+            avatar: "https://myblog.com/avatar.png"
+          },
+          {
+            name: "My Other Blog",
+            url: "https://myotherblog.com",
+            description: "A blog about my other life and stuff.",
+            avatar: "https://myotherblog.com/avatar.png"
+          },
+          // ... other entries
+        ]
+      },
+      {
+          group: "LABEL_FOR_GROUP_2",
+          groupName: "Group 2",
+          groupDesc: "Description for Group 2",
+          entries: [
+              // ... entries for group 2
+          ]
+      }
+      // ... other groups
+    ];
+    
+    export default linksData;
+    ```
