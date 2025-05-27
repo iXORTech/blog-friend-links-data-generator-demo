@@ -15,6 +15,7 @@ mod github_api_responses;
 use config::Config;
 use reqwest::header::{ACCEPT, AUTHORIZATION, USER_AGENT};
 use std::fs;
+use std::collections::HashMap;
 
 /// This function retrieves all issues from a specified GitHub repository.
 /// It uses the GitHub API to fetch issues and returns the response as a string (for now).
@@ -182,6 +183,7 @@ async fn main() {
         println!("    Description: {}", group.description);
         println!("    Label: {}", group.label);
     }
+    println!();
 
     // Call the function to get all issues from the GitHub repository.
     let issues = get_all_issues(&config).await;
@@ -189,22 +191,31 @@ async fn main() {
     // Filter the issues to only get valid ones based on the specified criteria.
     let issues = get_all_valid_issues(issues);
 
-    // Filter the issues to get only the active ones based on the specified label.
-    // let issues = get_all_active_entries(config.generation.label, issues);
+    // Filter the entries to get only the active ones based on the specified label.
+    let issues = get_all_active_entries(config.generation.label, issues);
 
-    // Print the issues to the console.
-    println!();
+    // Group the entries based on the groups defined in the configuration.
+    let mut group_to_issue_map: HashMap<String, Vec<github_api_responses::Issue>> = config.groups.iter()
+        .map(|group| (group.label.clone(), Vec::new()))
+        .collect();
+    // Process each issue.
     for issue in issues {
-        println!("Issue ID: {}", issue.id);
-        println!("Issue URL: {}", issue.url);
-        println!("Issue Number: {}", issue.number);
-        println!("Issue State: {}", issue.state);
-        println!("Issue Title: {}", issue.title);
-        println!("Issue Body: {}", issue.body);
-        println!("Issue Labels: {:?}", issue.labels);
-        println!("Issue Closed At: {:?}", issue.closed_at);
-        println!("Issue Created At: {}", issue.created_at());
-        println!("Issue Updated At: {}", issue.updated_at());
-        println!();
+        // Check if the issue has any of the group labels.
+        for group in &config.groups {
+            if issue.labels.iter().any(|l| l.name == group.label) {
+                // If it does, add the issue to the corresponding group.
+                group_to_issue_map.entry(group.label.clone()).or_default().push(issue.clone());
+            }
+        }
+    }
+    // Print the grouped issues.
+    println!("\nGrouped Issues:");
+    for (group_label, issues) in &group_to_issue_map {
+        println!("Group: {}", group_label);
+        for issue in issues {
+            println!("  - Issue ID: {}", issue.id);
+            println!("    Issue Title: {}", issue.title);
+            println!("    Issue URL: {}", issue.url);
+        }
     }
 }

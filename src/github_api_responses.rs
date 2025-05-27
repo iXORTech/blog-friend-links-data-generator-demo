@@ -8,7 +8,7 @@ use serde::Deserialize;
 /// and not all fields in the response data.
 ///
 /// See: https://docs.github.com/en/rest/issues/issues?apiVersion=2022-11-28#list-repository-issues
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Clone, Debug)]
 pub(crate) struct Issue {
     pub(crate) id: usize,
     pub(crate) url: String,
@@ -53,7 +53,7 @@ impl Issue {
 /// and not all fields in the response data.
 ///
 /// See: https://docs.github.com/en/rest/issues/issues?apiVersion=2022-11-28#list-repository-issues
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Clone, Debug)]
 pub(crate) struct Label {
     pub(crate) id: usize,
     pub(crate) name: String,
