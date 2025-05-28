@@ -16,6 +16,7 @@ use config::Config;
 use reqwest::header::{ACCEPT, AUTHORIZATION, USER_AGENT};
 use std::fs;
 use std::collections::HashMap;
+use crate::config::GroupConfig;
 
 /// This function retrieves all issues from a specified GitHub repository.
 /// It uses the GitHub API to fetch issues and returns the response as a string (for now).
@@ -162,6 +163,60 @@ fn get_all_active_entries(label: String, issues: Vec<github_api_responses::Issue
     issues.into_iter()
         .filter(|issue| issue.labels.iter().any(|l| l.name == label))
         .collect()
+}
+
+/// This function converts the map between friend links groups and actual list of entries
+/// into the needed JSON format for the output file.
+///
+/// ## Arguments
+/// - `groups`: A reference to a vector of `GroupConfig` structs
+///     that contains the necessary information about the link groups.
+/// - `group_to_issue_map`: A reference to a `HashMap` that maps group labels to a vector of
+///     `Issue` structs representing the friend links entries.
+///
+/// ## Returns
+/// A `String` that contains the JSON representation of the grouped issues.
+/// A sample structure can be seen in the design documentation.
+///
+fn group_to_issue_map_to_json(
+    groups: &Vec<GroupConfig>,
+    group_to_issue_map: &HashMap<String, Vec<github_api_responses::Issue>>,
+) -> String {
+    // Sample Structure:
+    // [
+    //   {
+    //     "group": "LABEL_FOR_GROUP_1",
+    //     "groupName": "Group 1",
+    //     "groupDesc": "Description for Group 1",
+    //     "entries": [
+    //       {
+    //         "name": "My Blog",
+    //         "url": "https://myblog.com",
+    //         "description": "A blog about my life and stuff.",
+    //         "avatar": "https://myblog.com/avatar.png"
+    //       },
+    //       {
+    //         "name": "My Other Blog",
+    //         "url": "https://myotherblog.com",
+    //         "description": "A blog about my other life and stuff.",
+    //         "avatar": "https://myotherblog.com/avatar.png"
+    //       },
+    //       // ... other entries
+    //     ]
+    //   },
+    //   {
+    //     "group": "LABEL_FOR_GROUP_2",
+    //     "groupName": "Group 2",
+    //     "groupDesc": "Description for Group 2",
+    //     "entries": [
+    //       // ... entries for group 2
+    //     ]
+    //   },
+    //   // ... other groups
+    // ]
+
+    // TODO: This `String::new()` is a placeholder.
+    String::new()
 }
 
 #[tokio::main]
