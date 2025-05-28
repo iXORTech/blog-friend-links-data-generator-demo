@@ -204,7 +204,6 @@ fn get_all_active_entries(label: String, issues: Vec<LinkEntry>) -> Vec<LinkEntr
 ///
 /// ## Returns
 /// The needed JSON structure for representing the generated data.
-///
 fn generate_json(
     groups: &Vec<GroupConfig>,
     group_to_entry_map: &HashMap<String, Vec<LinkEntry>>,
@@ -299,6 +298,9 @@ async fn main() {
     fs::create_dir_all("output").expect("Failed to Create Output Directory");
 
     // Write the JSON output to a file.
-    fs::write("output/linkData.json", serde_json::to_string_pretty(&json_output).unwrap())
-        .expect("Failed to Write Output File");
+    fs::write(
+        "output/linkData.json",
+        serde_json::to_string_pretty(&json_output).unwrap(),
+    )
+    .expect("Failed to Write Output File");
 }
