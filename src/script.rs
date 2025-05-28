@@ -7,10 +7,12 @@
 //! serde_json = "1.0.140"  # JSON Serialization/Deserialization
 //! tokio = { version = "1", features = ["full"] } # Asynchronous Runtime
 //! toml = "0.8.22" # TOML Parsing
+//! regex = "1.11.1"    # Regular Expression Library
 //! ```
 
 mod config;
 mod github_api_responses;
+mod json_to_js;
 mod link_entry;
 
 use crate::config::GroupConfig;
@@ -299,8 +301,16 @@ async fn main() {
 
     // Write the JSON output to a file.
     fs::write(
-        "output/linkData.json",
+        "output/linksData.json",
         serde_json::to_string_pretty(&json_output).unwrap(),
     )
     .expect("Failed to Write Output File");
+
+    // Generate the JavaScript object from the generated JSON data.
+    let js_output = format!(
+        "const linksData = {};\n\nexport default linksData;\n",
+        json_to_js::json_to_js_object(&json_output)
+    );
+    // Write the JavaScript output to a file.
+    fs::write("output/linksData.js", js_output).expect("Failed to Write JS Output File");
 }

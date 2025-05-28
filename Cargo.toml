@@ -22,3 +22,4 @@ serde = { version = "1.0.219", features = ["derive"] }  # Serialization/Deserial
 serde_json = "1.0.140"  # JSON Serialization/Deserialization
 tokio = { version = "1", features = ["full"] } # Asynchronous Runtime
 toml = "0.8.22" # TOML Parsing
+regex = "1.11.1"    # Regular Expression Library
