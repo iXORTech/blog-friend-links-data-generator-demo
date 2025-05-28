@@ -11,12 +11,14 @@
 
 mod config;
 mod github_api_responses;
+mod link_entry;
 
+use crate::config::GroupConfig;
+use crate::link_entry::LinkEntry;
 use config::Config;
 use reqwest::header::{ACCEPT, AUTHORIZATION, USER_AGENT};
-use std::fs;
 use std::collections::HashMap;
-use crate::config::GroupConfig;
+use std::fs;
 
 /// This function retrieves all issues from a specified GitHub repository.
 /// It uses the GitHub API to fetch issues and returns the response as a string (for now).
@@ -35,8 +37,12 @@ async fn get_all_issues(config: &Config) -> Vec<github_api_responses::Issue> {
     );
 
     // Send the GET request to the GitHub API.
-    let res = client.get(url)
-        .header(USER_AGENT, "blog-friend-links-data-generator by iXOR Technology")
+    let res = client
+        .get(url)
+        .header(
+            USER_AGENT,
+            "blog-friend-links-data-generator by iXOR Technology",
+        )
         .header(ACCEPT, "application/vnd.github+json")
         .header(AUTHORIZATION, format!("Bearer {}", config.github.token))
         .header("X-GitHub-Api-Version", "2022-11-28")
@@ -91,63 +97,84 @@ async fn get_all_issues(config: &Config) -> Vec<github_api_responses::Issue> {
 /// - `issues`: A vector of `Issue` structs representing the issues to be filtered.
 ///
 /// ## Returns
-/// A vector of `Issue` structs that contains all valid issues based on the criteria.
-fn get_all_valid_issues(issues: Vec<github_api_responses::Issue>) -> Vec<github_api_responses::Issue> {
-    issues.into_iter()
-        .filter(|issue| {
-            println!("Checking issue, ID: {}", issue.id);
+/// A vector of `LinkEntry` structs that contains the data, representing the friend links entries,
+/// retrieved from the valid issues.
+fn get_all_valid_issues(issues: Vec<github_api_responses::Issue>) -> Vec<LinkEntry> {
+    let mut entries: Vec<LinkEntry> = Vec::new();
 
-            let body = issue.body.clone();
-            let data_start = "<!-- DATA_START -->";
-            let data_end = "<!-- DATA_END -->";
-            let code_block_start = "```json";
-            let code_block_end = "```";
+    for issue in issues {
+        println!("Checking issue, ID: {}", issue.id);
 
-            // Find the index of data start and end comments.
-            let data_start_index = body.find(data_start);
-            let data_end_index = body.find(data_end);
+        let body = issue.body.clone();
+        let data_start = "<!-- DATA_START -->";
+        let data_end = "<!-- DATA_END -->";
+        let code_block_start = "```json";
+        let code_block_end = "```";
 
-            // Check if the comments exist.
-            if data_start_index.is_none() || data_end_index.is_none() {
-                println!("Missing DATA_START or DATA_END comment.");
-                return false;
-            }
-            let data_start_index = data_start_index.unwrap();
-            let data_end_index = data_end_index.unwrap();
+        // Find the index of data start and end comments.
+        let data_start_index = body.find(data_start);
+        let data_end_index = body.find(data_end);
 
-            // Check if the comments are in the correct order.
-            if data_start_index > data_end_index {
-                println!("DATA_START comment is after DATA_END comment.");
-                return false;
-            }
-            // Check if the comments are the only pair in the body.
-            if body.matches(data_start).count() != 1 || body.matches(data_end).count() != 1 {
-                println!("Multiple DATA_START or DATA_END comments found.");
-                return false;
-            }
+        // Check if the comments exist.
+        if data_start_index.is_none() || data_end_index.is_none() {
+            println!("Missing DATA_START or DATA_END comment.");
+            continue;
+        }
+        let data_start_index = data_start_index.unwrap();
+        let data_end_index = data_end_index.unwrap();
 
-            // Extract the data section between the comments.
-            let data_section = &body[data_start_index + data_start.len()..data_end_index].trim();
+        // Check if the comments are in the correct order.
+        if data_start_index > data_end_index {
+            println!("DATA_START comment is after DATA_END comment.");
+            continue;
+        }
+        // Check if the comments are the only pair in the body.
+        if body.matches(data_start).count() != 1 || body.matches(data_end).count() != 1 {
+            println!("Multiple DATA_START or DATA_END comments found.");
+            continue;
+        }
 
-            // Check if only a code block exists in the data section.
-            if !(data_section.starts_with(code_block_start) && data_section.ends_with(code_block_end)) {
-                println!("Other Markdown content found in the data section.");
-                return false;
-            }
-            // Check if the code block is the only one in the data section.
-            // The check is `data_section.matches(code_block_end).count() != 2` is done as the bit "```" is also included in the start of the code block.
-            if data_section.matches(code_block_start).count() != 1 || data_section.matches(code_block_end).count() != 2 {
-                println!("Multiple code blocks (or other Markdown content) found in the data section.");
-                return false;
-            }
+        // Extract the data section between the comments.
+        let data_section = &body[data_start_index + data_start.len()..data_end_index].trim();
 
-            // Extract the code block content.
-            let code_block = &data_section[code_block_start.len()..data_section.len() - code_block_end.len()];
+        // Check if only a code block exists in the data section.
+        if !(data_section.starts_with(code_block_start) && data_section.ends_with(code_block_end)) {
+            println!("Other Markdown content found in the data section.");
+            continue;
+        }
+        // Check if the code block is the only one in the data section.
+        // The check is `data_section.matches(code_block_end).count() != 2` is done as the bit "```" is also included in the start of the code block.
+        if data_section.matches(code_block_start).count() != 1
+            || data_section.matches(code_block_end).count() != 2
+        {
+            println!("Multiple code blocks (or other Markdown content) found in the data section.");
+            continue;
+        }
 
-            // Check if the code block content is valid JSON.
-            serde_json::from_str::<serde_json::Value>(code_block).is_ok()
-        })
-        .collect()
+        // Extract the code block content.
+        let code_block =
+            &data_section[code_block_start.len()..data_section.len() - code_block_end.len()];
+
+        // Check if the code block content is valid JSON.
+        if !serde_json::from_str::<serde_json::Value>(code_block).is_ok() {
+            println!("Invalid JSON in the code block.");
+            continue;
+        }
+
+        // If all checks passed, create a `LinkEntry` from the issue data.
+        let entry = LinkEntry {
+            id: issue.id,
+            labels: issue.labels.iter().map(|l| l.name.clone()).collect(),
+            json_data: serde_json::from_str(code_block).expect("Failed to Parse JSON Data"),
+            created_at: issue.created_at(),
+            updated_at: issue.updated_at(),
+        };
+
+        // Add the entry to the list of entries.
+        entries.push(entry);
+    }
+
+    entries
 }
 
 /// This function returns the list of issue that is active
@@ -159,9 +186,10 @@ fn get_all_valid_issues(issues: Vec<github_api_responses::Issue>) -> Vec<github_
 ///
 /// ## Returns
 /// A vector of `Issue` structs that contains all active issues (i.e. with the specified label).
-fn get_all_active_entries(label: String, issues: Vec<github_api_responses::Issue>) -> Vec<github_api_responses::Issue> {
-    issues.into_iter()
-        .filter(|issue| issue.labels.iter().any(|l| l.name == label))
+fn get_all_active_entries(label: String, issues: Vec<LinkEntry>) -> Vec<LinkEntry> {
+    issues
+        .into_iter()
+        .filter(|issue| issue.labels.contains(&label))
         .collect()
 }
 
@@ -222,7 +250,8 @@ fn group_to_issue_map_to_json(
 #[tokio::main]
 async fn main() {
     // Read the config.toml file and parse it.
-    let config_file: String = fs::read_to_string("config.toml").expect("Failed to Read Configuration File");
+    let config_file: String =
+        fs::read_to_string("config.toml").expect("Failed to Read Configuration File");
     let config: Config = toml::from_str(&config_file).expect("Failed to Parse Configuration");
 
     println!("Github Token: {}", config.github.token);
@@ -230,7 +259,10 @@ async fn main() {
     println!("Github Repository: {}", config.github.repository);
 
     println!("Generation Label: {}", config.generation.label);
-    println!("Sort by Updated Time: {}", config.generation.sort_by_updated_time);
+    println!(
+        "Sort by Updated Time: {}",
+        config.generation.sort_by_updated_time
+    );
 
     println!("Groups:");
     for group in &config.groups {
@@ -240,37 +272,38 @@ async fn main() {
     }
     println!();
 
-    // Call the function to get all issues from the GitHub repository.
-    let issues = get_all_issues(&config).await;
-
     // Filter the issues to only get valid ones based on the specified criteria.
-    let issues = get_all_valid_issues(issues);
+    let entries = get_all_valid_issues(get_all_issues(&config).await);
 
     // Filter the entries to get only the active ones based on the specified label.
-    let issues = get_all_active_entries(config.generation.label, issues);
+    let entries = get_all_active_entries(config.generation.label, entries);
 
     // Group the entries based on the groups defined in the configuration.
-    let mut group_to_issue_map: HashMap<String, Vec<github_api_responses::Issue>> = config.groups.iter()
+    let mut group_to_entry_map: HashMap<String, Vec<LinkEntry>> = config
+        .groups
+        .iter()
         .map(|group| (group.label.clone(), Vec::new()))
         .collect();
     // Process each issue.
-    for issue in issues {
+    for entry in entries {
         // Check if the issue has any of the group labels.
         for group in &config.groups {
-            if issue.labels.iter().any(|l| l.name == group.label) {
+            if entry.labels.iter().any(|label| label == &group.label) {
                 // If it does, add the issue to the corresponding group.
-                group_to_issue_map.entry(group.label.clone()).or_default().push(issue.clone());
+                group_to_entry_map
+                    .entry(group.label.clone())
+                    .or_default()
+                    .push(entry.clone());
             }
         }
     }
     // Print the grouped issues.
     println!("\nGrouped Issues:");
-    for (group_label, issues) in &group_to_issue_map {
+    for (group_label, issues) in &group_to_entry_map {
         println!("Group: {}", group_label);
         for issue in issues {
-            println!("  - Issue ID: {}", issue.id);
-            println!("    Issue Title: {}", issue.title);
-            println!("    Issue URL: {}", issue.url);
+            println!("  - Entry ID: {}", issue.id);
+            println!("    Entry Data: {}", issue.json_data);
         }
     }
 }
