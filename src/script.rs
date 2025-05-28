@@ -198,53 +198,35 @@ fn get_all_active_entries(label: String, issues: Vec<LinkEntry>) -> Vec<LinkEntr
 ///
 /// ## Arguments
 /// - `groups`: A reference to a vector of `GroupConfig` structs
-///     that contains the necessary information about the link groups.
-/// - `group_to_issue_map`: A reference to a `HashMap` that maps group labels to a vector of
-///     `Issue` structs representing the friend links entries.
+///    that contains the necessary information about the link groups.
+/// - `group_to_entry_map`: A reference to a `HashMap` that maps link entries (as a vector)
+///    to their corresponding group labels.
 ///
 /// ## Returns
-/// A `String` that contains the JSON representation of the grouped issues.
-/// A sample structure can be seen in the design documentation.
+/// The needed JSON structure for representing the generated data.
 ///
-fn group_to_issue_map_to_json(
+fn generate_json(
     groups: &Vec<GroupConfig>,
-    group_to_issue_map: &HashMap<String, Vec<github_api_responses::Issue>>,
-) -> String {
-    // Sample Structure:
-    // [
-    //   {
-    //     "group": "LABEL_FOR_GROUP_1",
-    //     "groupName": "Group 1",
-    //     "groupDesc": "Description for Group 1",
-    //     "entries": [
-    //       {
-    //         "name": "My Blog",
-    //         "url": "https://myblog.com",
-    //         "description": "A blog about my life and stuff.",
-    //         "avatar": "https://myblog.com/avatar.png"
-    //       },
-    //       {
-    //         "name": "My Other Blog",
-    //         "url": "https://myotherblog.com",
-    //         "description": "A blog about my other life and stuff.",
-    //         "avatar": "https://myotherblog.com/avatar.png"
-    //       },
-    //       // ... other entries
-    //     ]
-    //   },
-    //   {
-    //     "group": "LABEL_FOR_GROUP_2",
-    //     "groupName": "Group 2",
-    //     "groupDesc": "Description for Group 2",
-    //     "entries": [
-    //       // ... entries for group 2
-    //     ]
-    //   },
-    //   // ... other groups
-    // ]
+    group_to_entry_map: &HashMap<String, Vec<LinkEntry>>,
+) -> Vec<serde_json::Value> {
+    let mut json_data: Vec<serde_json::Value> = Vec::new();
 
-    // TODO: This `String::new()` is a placeholder.
-    String::new()
+    for group in groups {
+        // Get the entries for the current group.
+        if let Some(entries) = group_to_entry_map.get(&group.label) {
+            // Create a JSON object for the group.
+            let group_json = serde_json::json!({
+                "group": group.label,
+                "groupName": group.name,
+                "groupDesc": group.description,
+                "entries": entries.iter().map(|entry| entry.json_data.clone()).collect::<Vec<_>>()
+            });
+            // Add the group JSON to the list.
+            json_data.push(group_json);
+        }
+    }
+
+    json_data
 }
 
 #[tokio::main]
@@ -306,4 +288,8 @@ async fn main() {
             println!("    Entry Data: {}", issue.json_data);
         }
     }
+
+    // Generate the JSON output from the grouped issues.
+    let json_output = generate_json(&config.groups, &group_to_entry_map);
+    println!("\nGenerated JSON Output:\n{}", serde_json::to_string_pretty(&json_output).unwrap());
 }
