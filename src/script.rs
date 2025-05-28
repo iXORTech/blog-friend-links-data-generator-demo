@@ -291,5 +291,14 @@ async fn main() {
 
     // Generate the JSON output from the grouped issues.
     let json_output = generate_json(&config.groups, &group_to_entry_map);
-    println!("\nGenerated JSON Output:\n{}", serde_json::to_string_pretty(&json_output).unwrap());
+
+    // Clean output directory if it exists.
+    if fs::metadata("output").is_ok() {
+        fs::remove_dir_all("output").expect("Failed to Remove Output Directory");
+    }
+    fs::create_dir_all("output").expect("Failed to Create Output Directory");
+
+    // Write the JSON output to a file.
+    fs::write("output/linkData.json", serde_json::to_string_pretty(&json_output).unwrap())
+        .expect("Failed to Write Output File");
 }
