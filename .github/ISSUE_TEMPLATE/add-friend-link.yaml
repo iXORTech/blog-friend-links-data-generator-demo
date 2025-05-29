@@ -1,0 +1,49 @@
+name: Friend Link Request
+description: Add Your Website to Our Friend Links
+assignees: []
+body:
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      description: Please ensure that your website meets all the following requirements before submitting your friend link request. Check all the items that apply to your website.
+      options:
+        - required: true
+          label: Added our website in your friend links page.
+        - required: true
+          label: Legal, non-commercial, ad-free, malware-free, and not a scam website.
+        - required: true
+          label: HTTPS is enabled and a valid SSL certificate is installed.
+  - type: textarea
+    id: link-info
+    validations:
+      required: true
+    attributes:
+      label: Friend Link Information
+      description: Provide all the necessary information between the quotation marks. Do not change the JSON structure and do not touch the comments.
+      value: |
+        <!-- DATA_START -->
+        ```json
+        {
+            "title": "",
+            "url": "",
+            "avatar": "",
+            "screenshot": "",
+            "description": ""
+        }
+        ```
+        <!-- DATA_END -->
+  - type: input
+    id: friends-html
+    attributes:
+      label: Friend Links Page URL
+      description: Please provide the URL of your friend links page.
+      placeholder: "e.g. https://www.cubik65536.top/friends/"
+    validations:
+      required: true
+  - type: input
+    id: friends-repo
+    attributes:
+      label: Friend Links Repository URL (Optional)
+      description: If you also use a repository to manage your friend links, please provide the URL here.
+      placeholder: "e.g. https://github.com/Cubik65536/friends-api/"
