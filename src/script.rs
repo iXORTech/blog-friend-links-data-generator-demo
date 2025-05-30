@@ -30,6 +30,10 @@ use std::fs;
 ///
 /// See: https://docs.github.com/en/rest/issues/issues?apiVersion=2022-11-28#list-repository-issues
 async fn get_all_issues(config: &Config) -> Vec<github_api_responses::Issue> {
+    // Get GitHub Token from Environment Variables.
+    let github_token = std::env::var("GITHUB_TOKEN")
+        .expect("GITHUB_TOKEN environment variable is not set");
+
     // Setup the Reqwest client.
     let client = reqwest::Client::new();
     // Construct the URL for the GitHub API request.
@@ -46,7 +50,7 @@ async fn get_all_issues(config: &Config) -> Vec<github_api_responses::Issue> {
             "blog-friend-links-data-generator by iXOR Technology",
         )
         .header(ACCEPT, "application/vnd.github+json")
-        .header(AUTHORIZATION, format!("Bearer {}", config.github.token))
+        .header(AUTHORIZATION, format!("Bearer {}", github_token))
         .header("X-GitHub-Api-Version", "2022-11-28")
         .send()
         .await;
@@ -237,7 +241,6 @@ async fn main() {
         fs::read_to_string("config.toml").expect("Failed to Read Configuration File");
     let config: Config = toml::from_str(&config_file).expect("Failed to Parse Configuration");
 
-    println!("Github Token: {}", config.github.token);
     println!("Github Owner: {}", config.github.owner);
     println!("Github Repository: {}", config.github.repository);
 

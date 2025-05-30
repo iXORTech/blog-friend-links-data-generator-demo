@@ -16,12 +16,10 @@ pub(crate) struct Config {
 /// The structure of the GitHub configuration.
 ///
 /// It contains:
-/// - `token`: The GitHub API access token.
 /// - `owner`: The owner of the GitHub repository where issues to be processed are located.
 /// - `repository`: The name of the GitHub repository where issues to be processed are located.
 #[derive(Deserialize)]
 pub(crate) struct GithubConfig {
-    pub(crate) token: String,
     pub(crate) owner: String,
     pub(crate) repository: String,
 }

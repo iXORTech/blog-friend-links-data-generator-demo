@@ -1,5 +1,4 @@
 [github]
-token="YOUR_GITHUB_TOKEN"
 owner="THE_REPO_OWNER"
 repository="THE_REPO_NAME"
 
