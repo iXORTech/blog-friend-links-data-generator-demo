@@ -36,6 +36,7 @@ jobs:
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         branches: data
+        soft_fail: true
     - name: Upload generated data to data branch
       uses: LarchLiu/actions-save-files@v1
       with:
