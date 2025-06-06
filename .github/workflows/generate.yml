@@ -24,10 +24,22 @@ jobs:
       run: |
         chmod +x src/script.ers
         ./src/script.ers
-    - name: Upload generated data
+    - name: Upload generated data as artifact
       uses: actions/upload-artifact@v4
       with:
         name: output
         path: |
           ./output/linksData.js
           ./output/linksData.json
+    - name: Delete existing data branch
+      uses: dawidd6/action-delete-branch@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        branches: data
+    - name: Upload generated data to data branch
+      uses: LarchLiu/actions-save-files@v1
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_branch: data
+        publish_dir: output
+        destination_dir: .
