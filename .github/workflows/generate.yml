@@ -19,6 +19,8 @@ jobs:
     - name: Setup rust-script
       run: cargo install rust-script
     - name: Run src/script.ers
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         chmod +x src/script.ers
         ./src/script.ers
