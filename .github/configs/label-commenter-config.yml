@@ -1,0 +1,41 @@
+# .github/configs/label-commenter-configs.yml
+
+labels:
+  - name: 'active'
+    labeled:
+      issue:
+        body: |
+          **🎉 Congratulations! Your friend link has been added.**
+
+          Refresh the friend links page after a while to see your link.
+
+          > If your site information changes, please directly modify the content of this issue.
+
+  - name: 'suspend'
+    labeled:
+      issue:
+        body: |
+          **👋 Your friend link request has been suspended.**
+
+          Please add our site to your friend links, and then comment below.
+
+  - name: '404'
+    labeled:
+      issue:
+        body: |
+          **⚠️ Sorry, your website is not accessible, and it has been removed from the friend links or the request has been rejected.**
+
+          If you can confirm that your website is accessible, please comment below, and we will restore it after a manual review.
+
+  - name: 'not-meeting-requirements'
+    labeled:
+      issue:
+        body: |
+          **⚠️ Sorry, your website is missing necessary information or does not meet the requirements, and it has been removed or the request has been rejected.**
+
+          Please make sure that:
+          - You have filled in all the content in the issue template (`screenshot` is optional).
+          - The JSON format of the issue content is correct and the content structure has not been modified.
+          - Your website meets the requirements listed on above.
+
+          If you can confirm that your website meets the requirements, please comment below, and we will restore it after a manual review.
