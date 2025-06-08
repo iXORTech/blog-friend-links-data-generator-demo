@@ -38,7 +38,7 @@ body:
     attributes:
       label: Friend Links Page URL
       description: Please provide the URL of your friend links page.
-      placeholder: "e.g. https://www.cubik65536.top/friends/"
+      placeholder: "e.g. https://vitepress-theme-arch.ixor.dev/pages/links"
     validations:
       required: true
   - type: input
@@ -46,4 +46,4 @@ body:
     attributes:
       label: Friend Links Repository URL (Optional)
       description: If you also use a repository to manage your friend links, please provide the URL here.
-      placeholder: "e.g. https://github.com/Cubik65536/friends-api/"
+      placeholder: "e.g. https://github.com/iXORTech/blog-friend-links-data-generator/"
