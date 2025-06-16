@@ -36,7 +36,7 @@ If you want your website to automatically update the friend links data once the 
 > [!IMPORTANT]
 > Doing this requires you to have necessary knowledge about git submodules and GitHub Actions.
 
-1. Manually trigger the `Generate Friend Links Data` action once by adding a active issue or manually triggering the action from the Actions tab in your link data repository.
+1. Manually trigger the `Generate Friend Links Data` action once by adding an active issue or manually triggering the action from the Actions tab in your link data repository.
 2. Remove the necessary directories containing the link data file from your website repository (if needed), and add the `data` branch of the link data repository as a submodule of your website repository under the directory you want.
 3. Add the following GitHub Action workflow file to your website repository under `.github/workflows/sync-friend-links-data.yml` (make sure to replace `YOUR_SUBMODULE_DIRECTORY` with the directory where the submodule is located), commit and push the changes:
     
@@ -47,8 +47,11 @@ on:
    # Scheduled to run at 00:00 UTC every day
    schedule:
      - cron: "0 0 * * *"
-   # Manually Trigger & HTTP API Call Trigger
+   # Manually Trigger
    workflow_dispatch:
+   # Link data repository dispatch trigger
+   repository_dispatch:
+     types: [sync-friend-links-data]
  
 jobs:
    sync:
@@ -69,25 +72,18 @@ jobs:
          git commit -am "deploy: Sync Friend Link Data" && git push || echo "No Changes to Commit"
 ```
    
-4. Manually trigger the `Sync Friend Links Data` action once.
-5. Get the workflow ID of the sync workflow using the GitHub API endpoint `GET /repos/{owner}/{repo}/actions/workflows` and find the workflow with the name `Sync Friend Links Data`. Note the `id` of the workflow (it should be a number).
-6. Create a new GitHub token with `workflow` permission and add it to your link data repository as a secret named `CI_TOKEN`.
-7. Add the following step to the `Generate Friend Links Data` action workflow file in your link data repository (make sure to replace `YOUR_WEBSITE_REPOSITORY` to the actual name of the repository where your website code is hosted, and `YOUR_WORKFLOW_ID` with the workflow ID you noted in the previous step):
-
+4. Create a new GitHub token with `repo` and `workflow` permission and add it to your link data repository as a secret named `CI_TOKEN`.
+5. Add your website repository and your submodule path as `WEBSITE_REPO` and `SUBMODULE_PATH` in your link data repository's variable section (Settings > Secrets and variables > Actions > Variables) respectively.
+6. Add the following step to the `Generate Friend Links Data` action workflow in your link data repository's workflow file:
 ```yaml
-- name: Sync Friend Links Data
-  env:
-    PARENT_REPO: YOUR_WEBSITE_REPOSITORY
-    PARENT_BRANCH: main # or the name of the branch that contains the code for your website
-    WORKFLOW_ID: YOUR_WORKFLOW_ID
-  run: |
-    curl -L \
-      -X POST \
-      -H "Accept: application/vnd.github+json" \
-      -H "Authorization: Bearer ${{ secrets.CI_TOKEN }}" \
-      -H "X-GitHub-Api-Version: 2022-11-28" \
-      https://api.github.com/repos/${{ env.PARENT_REPO }}/actions/workflows/${{ env.WORKFLOW_ID }}/dispatches \
-      -d '{"ref":"${{ env.PARENT_BRANCH }}"}'
+ - name: Sync Friend Links Data
+   run: |
+     curl -X POST \
+       -H "Accept: application/vnd.github+json" \
+       -H "Authorization: Bearer ${{ secrets.CI_TOKEN }}" \
+       -H "X-GitHub-Api-Version: 2022-11-28" \
+       https://api.github.com/repos/${{ vars.WEBSITE_REPO }}/dispatches \
+       -d "{\"event_type\": \"sync-friend-links-data\", \"client_payload\": {\"submodule\": \"${{ vars.SUBMODULE_PATH }}\"}}"
 ```
 
 Now, whenever the `Generate Friend Links Data` action is triggered, it will also trigger the `Sync Friend Links Data` action in your website repository to update the friend links data submodule, and your website should always be kept up-to-date with the latest friend links data.
