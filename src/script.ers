@@ -315,5 +315,5 @@ async fn main() {
         json_to_js::json_to_js_object(&json_output)
     );
     // Write the JavaScript output to a file.
-    fs::write("output/linksData.js", js_output).expect("Failed to Write JS Output File");
+    fs::write("output/linksData.mjs", js_output).expect("Failed to Write JS Output File");
 }
