@@ -1,0 +1,16 @@
+[github]
+owner="iXORTech"
+repository="blog-friend-links-data-generator-demo"
+
+[generation]
+label="active"
+sort_by_updated_time=true
+
+[[groups]]
+name="Group 1"
+description="Description for Group 1"
+label="group1"
+[[groups]]
+name="Group 2"
+description="Description for Group 2"
+label="group2"
