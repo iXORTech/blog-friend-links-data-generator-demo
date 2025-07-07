@@ -1,0 +1,24 @@
+const linksData = [
+  {
+    entries: [
+      {
+        avatar: "https://img.qubik.top/CubikAvatar/56728b-outline.PNG",
+        description: "A Sample Website",
+        screenshot: "",
+        title: "Qubik's Website",
+        url: "https://qubik.top"
+      }
+    ],
+    group: "group1",
+    groupDesc: "Description for Group 1",
+    groupName: "Group 1"
+  },
+  {
+    entries: [],
+    group: "group2",
+    groupDesc: "Description for Group 2",
+    groupName: "Group 2"
+  }
+];
+
+export default linksData;
